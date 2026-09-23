@@ -1,35 +1,80 @@
-import { useState } from "react"
+import {
+  useState,
+  useRef,
+  useImperativeHandle,
+  useEffect
+} from "react";
 
-export default function TimeChallenge({title, targettime})
-{
-    const [StartedTime, setTimeStarted] = useState(false);
-    const [TimeExpired, setTimeExpired] = useState(false); 
+import ResultModel from "./ResultModel";
 
-    let timer ;
-    //handler
-        function handlerStart(){
-            timer = setTimeout(() => {
-                setTimeExpired(true);
-            }, targettime * 1000)
+export default function TimeChallenge({ title, targettime, ref }) {
+  const [timeRemaining, setTimeRemaining] = useState(
+    targettime * 1000
+  );
 
-            setTimeStarted(true);
-        }
+  const [isActive, setIsActive] = useState(false);
 
-        function handleStop(){
-            clearTimeout(timer);
-        }
+  const timer = useRef();
+  const dialog = useRef();
 
-    return (  
+  useImperativeHandle(ref, () => {
+    return {
+      open() {
+        dialog.current.showModal();
+      }
+    };
+  });
 
-    <section className="challenge">
-        <h2>{title}</h2>
-        {TimeExpired && <p>'You lost'</p>}
-        <p className="challenge-time">
-            {targettime} seconds {targettime > 1 ? 's' : ''}
-        </p>
-        <button onClick={StartedTime ? handleStop : handlerStart}>  Challenge</button>
-        <p className={StartedTime ? 'active': undefined}>
-            {StartedTime ? 'time is running ...'  : 'time inactive'}</p>
-        </section>   
-    );  
+  function handleStart() {
+    timer.current = setInterval(() => {
+      setTimeRemaining(prevTimeRemaining => prevTimeRemaining - 10);     
+        },10);
+    }
+   //return prevTimeRemaining - 10;
+      
+
+  function handleStop() {
+    clearInterval(timer.current);
+    //setIsActive(false);
+  }
+
+  if(timeRemaining <= 0) {
+    
+      clearInterval(timer.current);
+     setTimeRemaining(targettime * 1000);
+     dialog.current.open();
+    
+  };
+
+  return (
+    <>
+      <ResultModel ref={dialog} targetTime={targettime} result="lost" />
+        <section className="challenge">
+
+          <h2>{title}</h2>
+
+          {timeRemaining <= 0 && (
+            <p>You lost</p>
+          )}
+
+          <p className="challenge-time">
+            {targettime} second{targettime > 1 ? "s" : ""}
+          </p>
+
+          <button
+            onClick={isActive ? handleStop : handleStart}
+          >
+            {isActive ? "Stop" : "Start"} Challenge
+          </button>
+
+          <p className={isActive ? "active" : undefined}>
+            {isActive
+              ? "Time is running..."
+              : "Time inactive"}
+          </p>
+
+        </section>
+      
+    </>
+  );
 }
