@@ -25,9 +25,17 @@ export default function TimeChallenge({ title, targettime }) {
     }, 10);
   }
 
+  function handleReset(){
+    //clearInterval(timer.current);
+    setTimeRemaining(targettime *1000);
+   // setIsActive(false);
+
+  }
+
   function handleStop() {
     clearInterval(timer.current);
     setIsActive(false);
+  myrefdialog.current.open();
   }
 
   useEffect(() => {
@@ -44,7 +52,8 @@ export default function TimeChallenge({ title, targettime }) {
       <ResultModel
         ref={myrefdialog}
         targetTime={targettime}
-        result="lost"
+        remainingTime = {timeRemaining}
+        onReset ={handleReset}
       />
 
       <section className="challenge">
